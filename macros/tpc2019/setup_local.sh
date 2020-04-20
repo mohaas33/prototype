@@ -1,0 +1,3 @@
+  source /opt/sphenix/core/bin/sphenix_setup.sh -n       # sPHENIX environment, if you have not yet run it. For bash shell uers, please use /opt/sphenix/core/bin/sphenix_setup.sh instead
+  export MYINSTALL=~/tpc2019_install                            # For bash user, please use export MYINSTALL=~/install
+  source /opt/sphenix/core/bin/setup_local.sh $MYINSTALL # or for bash /opt/sphenix/core/bin/setup_local.sh 
