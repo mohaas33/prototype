@@ -158,6 +158,15 @@ void TpcPrototypeUnpacker::ClusterData::Clear(Option_t*)
     pad_azimuth_peaks.erase(pad_azimuth_peaks.begin());
   }
 
+  pad_radial_samples_n.clear();
+  pad_azimuth_samples_n.clear();
+  for (unsigned int i=0;i<pad_radial_samples_v.size();i++){
+    pad_radial_samples_v.clear(); 
+  }
+  for (unsigned int i=0;i<pad_azimuth_samples_v.size();i++){
+    pad_azimuth_samples_v.clear();
+  }
+
   //  while (sum_samples.begin() != sum_samples.end())
   //  {
   //    sum_samples.erase(sum_samples.begin());
@@ -646,11 +655,92 @@ int TpcPrototypeUnpacker::Clustering()
           cluster.sum_samples[i] += adc;
           cluster.pad_radial_samples[pad_x][i] += adc;
           cluster.pad_azimuth_samples[pad_y][i] += adc;
+          
+
         }
 
       }  //    	    for (int pad_y = *cluster.pad_azimuths.begin(); pad_y<=*cluster.pad_azimuths.rbegin() ;++pad_azimuth)
 
     }  //    for (int pad_x = *cluster.pad_radials.begin(); pad_x<=*cluster.pad_radials.rbegin() ;++pad_radial)
+    cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_x "<<endl;
+    int pad_x_n=0;
+    for (int pad_x = *cluster.pad_radials.begin(); pad_x <= *cluster.pad_radials.rbegin(); ++pad_x)
+    {
+      //      cluster.pad_radial_samples_n.push_back(pad_x);
+      cluster.pad_radial_samples_n[pad_x_n]=pad_x;
+      
+      vector<double> adc_v;
+      for (int pad_y = *cluster.pad_azimuths.begin(); pad_y <= *cluster.pad_azimuths.rbegin(); ++pad_y)
+      {
+
+        assert(m_padPlaneData.IsValidPad(pad_x, pad_y));
+
+        vector<int>& padsamples = m_padPlaneData.getPad(pad_x, pad_y);
+        
+        for (int i = 0; i < n_sample; ++i)
+        {
+          int adc = padsamples.at(cluster.min_sample + i);
+          if(pad_x_n==0){
+            adc_v.push_back(adc);
+          }else{
+            adc_v[i] += adc;
+          }
+          //cluster.pad_radial_samples_n[pad_x_n][i]+=adc;
+        }
+
+      }  //    	    for (int pad_y = *cluster.pad_azimuths.begin(); pad_y<=*cluster.pad_azimuths.rbegin() ;++pad_azimuth)
+      cluster.pad_radial_samples_v.push_back(adc_v);
+
+      pad_x_n++;
+    }  //    for (int pad_x = *cluster.pad_radials.begin(); pad_x<=*cluster.pad_radials.rbegin() ;++pad_radial)
+    cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_x size = "<<cluster.pad_radial_samples_n.size()<<endl;
+    cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_x V size = "<<cluster.pad_radial_samples_v.size()<<endl;
+    //cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y "<<endl;
+    //int pad_y_n=0;
+    //for (int pad_y = *cluster.pad_azimuths.begin(); pad_y <= *cluster.pad_azimuths.rbegin(); ++pad_y)
+    //{
+//
+    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 1 "<<endl;
+    //  cluster.pad_azimuth_samples_n.push_back(pad_y);
+    //  vector<double> adc_v_y;
+    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 2 "<<endl;
+    //  for (int pad_x = *cluster.pad_radials.begin(); pad_x <= *cluster.pad_radials.rbegin(); ++pad_x)
+    //  {
+//
+    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 3 "<<endl;
+    //    assert(m_padPlaneData.IsValidPad(pad_x, pad_y));
+//
+    //    vector<int>& padsamples = m_padPlaneData.getPad(pad_x, pad_y);
+//
+    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 4 "<<endl;
+    //    for (int i = 0; i < n_sample; ++i)
+    //    {
+    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 5 "<<endl;
+    //      int adc = padsamples.at(cluster.min_sample + i);
+    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 5.1 "<<endl;
+    //      //if(pad_y_n==0){
+    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 5.2.0 "<<endl;
+//
+    //        //adc_v.push_back(adc);
+    //      //}else{
+    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 5.2.1 "<<endl;
+    //      if (!adc_v_y[i]){
+    //        adc_v_y.push_back(adc);
+    //      } else{           
+    //        adc_v_y[i] += adc;
+    //      }
+    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 5.3 "<<endl;
+//
+    //    }
+//
+    //  }  //    	    for (int pad_y = *cluster.pad_azimuths.begin(); pad_y<=*cluster.pad_azimuths.rbegin() ;++pad_azimuth)
+    //  cluster.pad_azimuth_samples_v.push_back(adc_v_y);
+    //  pad_y_n++;
+//
+    //}  //    for (int pad_x = *cluster.pad_radials.begin(); pad_x<=*cluster.pad_radials.rbegin() ;++pad_radial)
+    //cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y END"<<endl;
+
+
 
     if (m_pdfMaker)
     {
@@ -831,6 +921,7 @@ int TpcPrototypeUnpacker::exportDSTCluster(ClusterData& cluster, const int iclus
   cluster.avg_pos_z = clus->getPosition(2);
 
   cluster.delta_z = (layergeom->get_zcenter(cluster.min_sample + 1) - layergeom->get_zcenter(cluster.min_sample));
+  cluster.delta_z_cp = (layergeom->get_zcenter(cluster.min_sample + 1) - layergeom->get_zcenter(cluster.min_sample));
   cluster.delta_azimuth_bin = (layergeom->get_phicenter(lowery + 1) - layergeom->get_phicenter(lowery));
 
   TMatrixF DIM(3, 3);
@@ -1043,7 +1134,7 @@ void TpcPrototypeUnpacker::PadPlaneData::Clustering(int zero_suppression, bool v
   }
 
   //debug prints
-  if (verbosity)
+  if (verbosity){
     for (const int& comp : comps)
     {
       cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering - find cluster " << comp << " containing ";
@@ -1056,6 +1147,7 @@ void TpcPrototypeUnpacker::PadPlaneData::Clustering(int zero_suppression, bool v
       }
       cout << endl;
     }  //  for (const int& comp : comps)
+  }
 }
 
 Fun4AllHistoManager*

@@ -12,6 +12,8 @@
 
 #include <TObject.h>
 
+
+
 #include <stdint.h>
 #include <cmath>
 #include <map>
@@ -19,6 +21,11 @@
 #include <string>
 #include <utility>  // for pair
 #include <vector>
+
+static const unsigned int kSAMPLE_LENGTH_v = 128;
+static const unsigned int kMaxPadY_v=16*8;
+static const unsigned int kMaxPadX_v=16;
+
 
 class PHCompositeNode;
 class Fun4AllHistoManager;
@@ -164,6 +171,11 @@ class TpcPrototypeUnpacker : public SubsysReco
       , avg_pos_z(NAN)
       , delta_azimuth_bin(NAN)
       , delta_z(NAN)
+      , pad_radial_samples_n( std::vector<int>(kMaxPadX_v,0) )
+      , pad_azimuth_samples_n(std::vector<int>(kMaxPadY_v,0) )
+      , pad_radial_samples_v(NAN)
+      , pad_azimuth_samples_v(NAN)
+
     {
     }
 
@@ -209,6 +221,13 @@ class TpcPrototypeUnpacker : public SubsysReco
     double delta_azimuth_bin;
     //! z size per ADC sample bin
     double delta_z;
+    double delta_z_cp;
+
+    std::vector<int> pad_radial_samples_n;
+    std::vector<int> pad_azimuth_samples_n;
+    std::vector<std::vector<double>> pad_radial_samples_v;
+    std::vector<std::vector<double>> pad_azimuth_samples_v;
+
 
     ClassDef(TpcPrototypeUnpacker::ClusterData, 5);
   };
