@@ -718,10 +718,11 @@ int TpcPrototypeUnpacker::Clustering()
         assert(m_padPlaneData.IsValidPad(pad_x, pad_y));
 
         std::vector<int>& padsamples = m_padPlaneData.getPad(pad_x, pad_y);
-        
+        std::cout<< "\n pad_x=" << pad_x << "; pad_y=" << pad_y <<std::endl;
         for (int i = 0; i < n_sample; ++i)
         {
           int adc = padsamples.at(cluster.min_sample + i);
+          std::cout<<adc<<"\t";
           if(pad_y_n==0){
             adc_v.push_back(adc);
           }else{
