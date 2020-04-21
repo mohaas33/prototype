@@ -72,7 +72,7 @@
 
 class PHField;
 
-using namespace std;
+//using namespace std;
 using namespace TpcPrototypeDefs::FEEv2;
 
 TpcPrototypeUnpacker::TpcPrototypeUnpacker(const std::string& outputfilename)
@@ -141,6 +141,36 @@ void TpcPrototypeUnpacker::ClusterData::Clear(Option_t*)
   //  for (auto& s : pad_azimuth_samples) s.second.clear();
   //  pad_azimuth_samples.clear();
 
+
+
+  while (pad_azimuth_peaks.begin() != pad_azimuth_peaks.end())
+  {
+    pad_azimuth_peaks.erase(pad_azimuth_peaks.begin());
+  }
+
+
+  //  while (sum_samples.begin() != sum_samples.end())
+  //  {
+  //    sum_samples.erase(sum_samples.begin());
+  //  }
+  sum_samples.clear();
+  sum_samples.shrink_to_fit();
+
+
+  pad_radial_samples_n.clear();
+  pad_azimuth_samples_n.clear();
+  pad_radial_samples_n .shrink_to_fit();
+  pad_azimuth_samples_n.shrink_to_fit();
+
+  for (unsigned int i=0;i<pad_radial_samples_v.size();i++){
+    pad_radial_samples_v[i].clear(); 
+    pad_radial_samples_v[i].shrink_to_fit(); 
+  }
+  for (unsigned int j=0;j<pad_azimuth_samples_v.size();j++){
+    pad_azimuth_samples_v[j].clear();
+    pad_azimuth_samples_v[j].shrink_to_fit();
+  }
+
   while (pad_radial_samples.begin() != pad_radial_samples.end())
   {
     pad_radial_samples.begin()->second.clear();
@@ -152,27 +182,6 @@ void TpcPrototypeUnpacker::ClusterData::Clear(Option_t*)
     pad_azimuth_samples.begin()->second.clear();
     pad_azimuth_samples.erase(pad_azimuth_samples.begin());
   }
-
-  while (pad_azimuth_peaks.begin() != pad_azimuth_peaks.end())
-  {
-    pad_azimuth_peaks.erase(pad_azimuth_peaks.begin());
-  }
-
-  pad_radial_samples_n.clear();
-  pad_azimuth_samples_n.clear();
-  for (unsigned int i=0;i<pad_radial_samples_v.size();i++){
-    pad_radial_samples_v.clear(); 
-  }
-  for (unsigned int i=0;i<pad_azimuth_samples_v.size();i++){
-    pad_azimuth_samples_v.clear();
-  }
-
-  //  while (sum_samples.begin() != sum_samples.end())
-  //  {
-  //    sum_samples.erase(sum_samples.begin());
-  //  }
-  sum_samples.clear();
-  sum_samples.shrink_to_fit();
 }
 
 int TpcPrototypeUnpacker::Init(PHCompositeNode* topNode)
@@ -189,19 +198,19 @@ int TpcPrototypeUnpacker::InitRun(PHCompositeNode* topNode)
   {
     if (Verbosity() >= VERBOSITY_SOME)
     {
-      cout << "TpcPrototypeUnpacker::InitRun - making pad plane"
-           << endl;
+      std::cout << "TpcPrototypeUnpacker::InitRun - making pad plane"
+           << std::endl;
     }
 
     //setup the constant field
     const int field_ret = InitField(topNode);
     if (field_ret != Fun4AllReturnCodes::EVENT_OK)
     {
-      cout << "TpcPrototypeUnpacker::InitRun- Error - Failed field init with status = " << field_ret << endl;
+      std::cout << "TpcPrototypeUnpacker::InitRun- Error - Failed field init with status = " << field_ret << std::endl;
       return field_ret;
     }
 
-    string seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
+    std::string seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
     tpcCylinderCellGeom = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
     if (!tpcCylinderCellGeom)
     {
@@ -226,7 +235,7 @@ int TpcPrototypeUnpacker::InitRun(PHCompositeNode* topNode)
     PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
     if (!dstNode)
     {
-      cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+      std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
@@ -247,8 +256,8 @@ int TpcPrototypeUnpacker::InitRun(PHCompositeNode* topNode)
 
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "TpcPrototypeUnpacker::InitRun - Making PHTFileServer " << m_outputFileName
-         << endl;
+    std::cout << "TpcPrototypeUnpacker::InitRun - Making PHTFileServer " << m_outputFileName
+         << std::endl;
 
     m_pdfMaker = new SampleFit_PowerLawDoubleExp_PDFMaker();
   }
@@ -317,7 +326,7 @@ int TpcPrototypeUnpacker::End(PHCompositeNode* topNode)
 {
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "TpcPrototypeUnpacker::End - write to " << m_outputFileName << endl;
+    std::cout << "TpcPrototypeUnpacker::End - write to " << m_outputFileName << std::endl;
   }
   PHTFileServer::get().cd(m_outputFileName);
 
@@ -353,7 +362,7 @@ int TpcPrototypeUnpacker::process_event(PHCompositeNode* topNode)
   if (event == nullptr)
   {
     if (Verbosity() >= VERBOSITY_SOME)
-      cout << "TpcPrototypeUnpacker::Process_Event - Event not found" << endl;
+      std::cout << "TpcPrototypeUnpacker::Process_Event - Event not found" << std::endl;
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
@@ -385,7 +394,7 @@ int TpcPrototypeUnpacker::process_event(PHCompositeNode* topNode)
   static const char* IS_PRESENT = "IS_PRESENT";
   static const char* BX_COUNTER = "BX";
 
-  unique_ptr<Packet> p(event->getPacket(kPACKET_ID));
+  std::unique_ptr<Packet> p(event->getPacket(kPACKET_ID));
   if (p == nullptr)
     return Fun4AllReturnCodes::DISCARDEVENT;
 
@@ -393,7 +402,7 @@ int TpcPrototypeUnpacker::process_event(PHCompositeNode* topNode)
 
   if (Verbosity() >= VERBOSITY_EVEN_MORE)
   {
-    cout << "TpcPrototypeUnpacker::process_event - package dump" << endl;
+    std::cout << "TpcPrototypeUnpacker::process_event - package dump" << std::endl;
     p->dump();
   }
 
@@ -412,7 +421,7 @@ int TpcPrototypeUnpacker::process_event(PHCompositeNode* topNode)
 
     if (Verbosity() >= VERBOSITY_MORE)
     {
-      cout << "TpcPrototypeUnpacker::process_event - max_length[" << i << "]=" << max_length[i] << endl;
+      std::cout << "TpcPrototypeUnpacker::process_event - max_length[" << i << "]=" << max_length[i] << std::endl;
     }
   }
 
@@ -427,21 +436,21 @@ int TpcPrototypeUnpacker::process_event(PHCompositeNode* topNode)
       {
         if (Verbosity() >= VERBOSITY_MORE)
         {
-          cout << "TpcPrototypeUnpacker::process_event - missing fee[" << fee << "]=" << endl;
+          std::cout << "TpcPrototypeUnpacker::process_event - missing fee[" << fee << "]=" << std::endl;
         }
         continue;
       }
     }
     catch (const std::out_of_range& e)
     {
-      cout << "TpcPrototypeUnpacker::process_event - out_of_range in p->iValue(" << fee << ", IS_PRESENT)" << endl;
+      std::cout << "TpcPrototypeUnpacker::process_event - out_of_range in p->iValue(" << fee << ", IS_PRESENT)" << std::endl;
 
       break;
     }
 
     if (Verbosity() >= VERBOSITY_MORE)
     {
-      cout << "TpcPrototypeUnpacker::process_event - processing fee[" << fee << "]=" << endl;
+      std::cout << "TpcPrototypeUnpacker::process_event - processing fee[" << fee << "]=" << std::endl;
     }
 
     for (unsigned int channel = 0; channel < kN_CHANNELS; channel++)
@@ -452,9 +461,9 @@ int TpcPrototypeUnpacker::process_event(PHCompositeNode* topNode)
 
       if (Verbosity() >= VERBOSITY_MORE)
       {
-        cout << "TpcPrototypeUnpacker::process_event - processing fee["
+        std::cout << "TpcPrototypeUnpacker::process_event - processing fee["
              << fee << "], chan[" << channel << "] NR_SAMPLES = "
-             << p->iValue(fee, channel, "NR_SAMPLES") << endl;
+             << p->iValue(fee, channel, "NR_SAMPLES") << std::endl;
       }
 
       unsigned int real_t = 0;
@@ -544,7 +553,7 @@ int TpcPrototypeUnpacker::process_event(PHCompositeNode* topNode)
       //
       if (Verbosity() >= VERBOSITY_MORE)
       {
-        cout << "TpcPrototypeUnpacker::process_event - "
+        std::cout << "TpcPrototypeUnpacker::process_event - "
              << "m_chanHeader.m_size = " << int(m_chanHeader.size) << ", "
              << "m_chanHeader.m_packet_type = " << int(m_chanHeader.packet_type) << ", "
              << "m_chanHeader.m_bx_counter = " << int(m_chanHeader.bx_counter) << ", "
@@ -555,16 +564,16 @@ int TpcPrototypeUnpacker::process_event(PHCompositeNode* topNode)
 
         for (unsigned int sample = 0; sample < kSAMPLE_LENGTH; sample++)
         {
-          cout << "data[" << sample << "] = " << int(m_chanData[sample]) << " ";
+          std::cout << "data[" << sample << "] = " << int(m_chanData[sample]) << " ";
         }
 
-        cout << endl;
+        std::cout << std::endl;
       }
 
       //      // fill event data
       //      if (PadPlaneData::IsValidPad(m_chanHeader.pad_x, m_chanHeader.pad_y))
       //      {
-      vector<int>& paddata = m_padPlaneData.getPad(m_chanHeader.pad_x, m_chanHeader.pad_y);
+      std::vector<int>& paddata = m_padPlaneData.getPad(m_chanHeader.pad_x, m_chanHeader.pad_y);
       //
       for (unsigned int sample = 0; sample < kSAMPLE_LENGTH; sample++)
       {
@@ -595,11 +604,11 @@ int TpcPrototypeUnpacker::process_event(PHCompositeNode* topNode)
 int TpcPrototypeUnpacker::Clustering()
 {
   if (Verbosity())
-    cout << __PRETTY_FUNCTION__ << " entry" << endl;
+    std::cout << __PRETTY_FUNCTION__ << " entry" << std::endl;
 
   // find cluster
   m_padPlaneData.Clustering(m_clusteringZeroSuppression, Verbosity() >= VERBOSITY_SOME);
-  const multimap<int, PadPlaneData::SampleID>& groups = m_padPlaneData.getGroups();
+  const std::multimap<int, PadPlaneData::SampleID>& groups = m_padPlaneData.getGroups();
 
   // export clusters
   assert(m_clusters.size() == 0);  //already cleared.
@@ -627,8 +636,8 @@ int TpcPrototypeUnpacker::Clustering()
     if (*(cluster.pad_azimuths.rbegin()) + 1 < (int) kMaxPadY)
       cluster.pad_azimuths.insert(*(cluster.pad_azimuths.rbegin()) + 1);
 
-    cluster.min_sample = max(0, *cluster.samples.begin() - m_nPreSample);
-    cluster.max_sample = min((int) (kSAMPLE_LENGTH) -1, *cluster.samples.rbegin() + m_nPostSample);
+    cluster.min_sample = std::max(0, *cluster.samples.begin() - m_nPreSample);
+    cluster.max_sample = std::min((int) (kSAMPLE_LENGTH) -1, *cluster.samples.rbegin() + m_nPostSample);
     const int n_sample = cluster.max_sample - cluster.min_sample + 1;
 
     cluster.sum_samples.assign(n_sample, 0);
@@ -647,7 +656,7 @@ int TpcPrototypeUnpacker::Clustering()
       {
         assert(m_padPlaneData.IsValidPad(pad_x, pad_y));
 
-        vector<int>& padsamples = m_padPlaneData.getPad(pad_x, pad_y);
+        std::vector<int>& padsamples = m_padPlaneData.getPad(pad_x, pad_y);
 
         for (int i = 0; i < n_sample; ++i)
         {
@@ -662,20 +671,20 @@ int TpcPrototypeUnpacker::Clustering()
       }  //    	    for (int pad_y = *cluster.pad_azimuths.begin(); pad_y<=*cluster.pad_azimuths.rbegin() ;++pad_azimuth)
 
     }  //    for (int pad_x = *cluster.pad_radials.begin(); pad_x<=*cluster.pad_radials.rbegin() ;++pad_radial)
-    cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_x "<<endl;
+    std::cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_x "<<std::endl;
     int pad_x_n=0;
     for (int pad_x = *cluster.pad_radials.begin(); pad_x <= *cluster.pad_radials.rbegin(); ++pad_x)
     {
       //      cluster.pad_radial_samples_n.push_back(pad_x);
       cluster.pad_radial_samples_n[pad_x_n]=pad_x;
       
-      vector<double> adc_v;
+      std::vector<double> adc_v;
       for (int pad_y = *cluster.pad_azimuths.begin(); pad_y <= *cluster.pad_azimuths.rbegin(); ++pad_y)
       {
 
         assert(m_padPlaneData.IsValidPad(pad_x, pad_y));
 
-        vector<int>& padsamples = m_padPlaneData.getPad(pad_x, pad_y);
+        std::vector<int>& padsamples = m_padPlaneData.getPad(pad_x, pad_y);
         
         for (int i = 0; i < n_sample; ++i)
         {
@@ -693,53 +702,39 @@ int TpcPrototypeUnpacker::Clustering()
 
       pad_x_n++;
     }  //    for (int pad_x = *cluster.pad_radials.begin(); pad_x<=*cluster.pad_radials.rbegin() ;++pad_radial)
-    cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_x size = "<<cluster.pad_radial_samples_n.size()<<endl;
-    cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_x V size = "<<cluster.pad_radial_samples_v.size()<<endl;
-    //cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y "<<endl;
-    //int pad_y_n=0;
-    //for (int pad_y = *cluster.pad_azimuths.begin(); pad_y <= *cluster.pad_azimuths.rbegin(); ++pad_y)
-    //{
-//
-    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 1 "<<endl;
-    //  cluster.pad_azimuth_samples_n.push_back(pad_y);
-    //  vector<double> adc_v_y;
-    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 2 "<<endl;
-    //  for (int pad_x = *cluster.pad_radials.begin(); pad_x <= *cluster.pad_radials.rbegin(); ++pad_x)
-    //  {
-//
-    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 3 "<<endl;
-    //    assert(m_padPlaneData.IsValidPad(pad_x, pad_y));
-//
-    //    vector<int>& padsamples = m_padPlaneData.getPad(pad_x, pad_y);
-//
-    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 4 "<<endl;
-    //    for (int i = 0; i < n_sample; ++i)
-    //    {
-    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 5 "<<endl;
-    //      int adc = padsamples.at(cluster.min_sample + i);
-    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 5.1 "<<endl;
-    //      //if(pad_y_n==0){
-    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 5.2.0 "<<endl;
-//
-    //        //adc_v.push_back(adc);
-    //      //}else{
-    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 5.2.1 "<<endl;
-    //      if (!adc_v_y[i]){
-    //        adc_v_y.push_back(adc);
-    //      } else{           
-    //        adc_v_y[i] += adc;
-    //      }
-    //  cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y: 5.3 "<<endl;
-//
-    //    }
-//
-    //  }  //    	    for (int pad_y = *cluster.pad_azimuths.begin(); pad_y<=*cluster.pad_azimuths.rbegin() ;++pad_azimuth)
-    //  cluster.pad_azimuth_samples_v.push_back(adc_v_y);
-    //  pad_y_n++;
-//
-    //}  //    for (int pad_x = *cluster.pad_radials.begin(); pad_x<=*cluster.pad_radials.rbegin() ;++pad_radial)
-    //cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_y END"<<endl;
+    std::cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_x size = "<<cluster.pad_radial_samples_n.size()<<std::endl;
+    std::cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering pad_x V size = "<<cluster.pad_radial_samples_v.size()<<std::endl;
 
+    int pad_y_n=0;
+    for (int pad_y = *cluster.pad_azimuths.begin(); pad_y <= *cluster.pad_azimuths.rbegin(); ++pad_y)
+    {
+      //      cluster.pad_azimuth_samples_n.push_back(pad_x);
+      cluster.pad_azimuth_samples_n[pad_y_n]=pad_y;
+      
+      std::vector<double> adc_v;
+      for (int pad_x = *cluster.pad_radials.begin(); pad_x <= *cluster.pad_radials.rbegin(); ++pad_x)
+      {
+
+        assert(m_padPlaneData.IsValidPad(pad_x, pad_y));
+
+        std::vector<int>& padsamples = m_padPlaneData.getPad(pad_x, pad_y);
+        
+        for (int i = 0; i < n_sample; ++i)
+        {
+          int adc = padsamples.at(cluster.min_sample + i);
+          if(pad_y_n==0){
+            adc_v.push_back(adc);
+          }else{
+            adc_v[i] += adc;
+          }
+          //cluster.pad_azimuth_samples_n[pad_y_n][i]+=adc;
+        }
+
+      }  //    	    for (int pad_y = *cluster.pad_azimuths.begin(); pad_y<=*cluster.pad_azimuths.rbegin() ;++pad_azimuth)
+      cluster.pad_azimuth_samples_v.push_back(adc_v);
+
+      pad_y_n++;
+    }  //    for (int pad_x = *cluster.pad_radials.begin(); pad_x<=*cluster.pad_radials.rbegin() ;++pad_radial)
 
 
     if (m_pdfMaker)
@@ -748,12 +743,12 @@ int TpcPrototypeUnpacker::Clustering()
     }
 
     // fit - overal cluster
-    map<int, double> parameters_constraints;
+    std::map<int, double> parameters_constraints;
     {
       double peak = NAN;
       double peak_sample = NAN;
       double pedstal = NAN;
-      map<int, double> parameters_io;
+      std::map<int, double> parameters_io;
       SampleFit_PowerLawDoubleExp(cluster.sum_samples, peak,
                                   peak_sample, pedstal, parameters_io, Verbosity());
 
@@ -803,7 +798,7 @@ int TpcPrototypeUnpacker::Clustering()
         double peak = NAN;
         double peak_sample = NAN;
         double pedstal = NAN;
-        map<int, double> parameters_io(parameters_constraints);
+        std::map<int, double> parameters_io(parameters_constraints);
 
         SampleFit_PowerLawDoubleExp(cluster.pad_azimuth_samples[pad_y], peak,
                                     peak_sample, pedstal, parameters_io, Verbosity());
@@ -821,7 +816,7 @@ int TpcPrototypeUnpacker::Clustering()
   }  //   for (auto& iter : m_clusters)
 
   // sort by energy
-  map<double, int> cluster_energy;
+  std::map<double, int> cluster_energy;
   for (auto& iter : m_clusters)
   {
     //reverse energy sorting
@@ -842,6 +837,10 @@ int TpcPrototypeUnpacker::Clustering()
 
     // super awkward ways of ROOT filling TClonesArray
     new ((*m_IOClusters)[m_nClusters++]) ClusterData(cluster);
+    //m_IOClusters[m_nClusters-1].pad_radial_samples_n.size();
+    ClusterData * cluster_check = dynamic_cast<ClusterData *>((*m_IOClusters)[m_nClusters-1]);
+    assert(cluster_check);
+    std::cout << "cluster_check. cluster.  "<<cluster_check->pad_radial_samples_n.size()<<std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -868,15 +867,15 @@ int TpcPrototypeUnpacker::exportDSTCluster(ClusterData& cluster, const int iclus
   const double radius = layergeom->get_radius();  // returns center of layer
   if (cluster.avg_pad_azimuth < 0)
   {
-    cout << __PRETTY_FUNCTION__ << " WARNING - cluster.avg_pad_azimuth = " << cluster.avg_pad_azimuth << " < 0"
-         << ", cluster.avg_pad_radial = " << cluster.avg_pad_radial << endl;
+    std::cout << __PRETTY_FUNCTION__ << " WARNING - cluster.avg_pad_azimuth = " << cluster.avg_pad_azimuth << " < 0"
+         << ", cluster.avg_pad_radial = " << cluster.avg_pad_radial << std::endl;
 
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   if (cluster.avg_pad_azimuth >= NPhiBins)
   {
-    cout << __PRETTY_FUNCTION__ << " WARNING - cluster.avg_pad_azimuth = " << cluster.avg_pad_azimuth << " > " << NPhiBins
-         << ", cluster.avg_pad_radial = " << cluster.avg_pad_radial << endl;
+    std::cout << __PRETTY_FUNCTION__ << " WARNING - cluster.avg_pad_azimuth = " << cluster.avg_pad_azimuth << " > " << NPhiBins
+         << ", cluster.avg_pad_radial = " << cluster.avg_pad_radial << std::endl;
 
     return Fun4AllReturnCodes::ABORTEVENT;
   }
@@ -884,9 +883,9 @@ int TpcPrototypeUnpacker::exportDSTCluster(ClusterData& cluster, const int iclus
 
   if (lowery < 0)
   {
-    cout << __PRETTY_FUNCTION__ << " WARNING - cluster.avg_pad_azimuth = " << cluster.avg_pad_azimuth << " -> "
+    std::cout << __PRETTY_FUNCTION__ << " WARNING - cluster.avg_pad_azimuth = " << cluster.avg_pad_azimuth << " -> "
          << " lower = " << lowery << " < 0"
-         << ", cluster.avg_pad_radial = " << cluster.avg_pad_radial << endl;
+         << ", cluster.avg_pad_radial = " << cluster.avg_pad_radial << std::endl;
 
     return Fun4AllReturnCodes::ABORTEVENT;
   }
@@ -972,7 +971,7 @@ int TpcPrototypeUnpacker::exportDSTCluster(ClusterData& cluster, const int iclus
   clus->setSize(2, 0, COVAR_DIM[2][0]);
   clus->setSize(2, 1, COVAR_DIM[2][1]);
   clus->setSize(2, 2, COVAR_DIM[2][2]);
-  //cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << endl;
+  //std::cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << std::endl;
 
   TMatrixF COVAR_ERR(3, 3);
   COVAR_ERR = ROT * ERR * ROT_T;
@@ -989,7 +988,7 @@ int TpcPrototypeUnpacker::exportDSTCluster(ClusterData& cluster, const int iclus
 
   if (Verbosity() >= 2)
   {
-    cout << __PRETTY_FUNCTION__ << "Dump clusters after TpcPrototypeClusterizer" << endl;
+    std::cout << __PRETTY_FUNCTION__ << "Dump clusters after TpcPrototypeClusterizer" << std::endl;
     clus->identify();
   }
 
@@ -998,7 +997,7 @@ int TpcPrototypeUnpacker::exportDSTCluster(ClusterData& cluster, const int iclus
 
 TpcPrototypeUnpacker::PadPlaneData::
     PadPlaneData()
-  : m_data(kMaxPadY, vector<vector<int>>(kMaxPadX, vector<int>(kSAMPLE_LENGTH, 0)))
+  : m_data(kMaxPadY, std::vector<std::vector<int>>(kMaxPadX, std::vector<int>(kSAMPLE_LENGTH, 0)))
 {
 }
 
@@ -1023,7 +1022,7 @@ bool TpcPrototypeUnpacker::PadPlaneData::IsValidPad(const int pad_x, const int p
          (pad_y < int(kMaxPadY));
 }
 
-vector<int>& TpcPrototypeUnpacker::PadPlaneData::getPad(const int pad_x, const int pad_y)
+std::vector<int>& TpcPrototypeUnpacker::PadPlaneData::getPad(const int pad_x, const int pad_y)
 {
   assert(pad_x >= 0);
   assert(pad_x < int(kMaxPadX));
@@ -1045,7 +1044,7 @@ std::pair<int, int> TpcPrototypeUnpacker::roughZeroSuppression(std::vector<int>&
   for (auto& d : data)
     d -= pedestal;
 
-  return make_pair(pedestal, max);
+  return std::make_pair(pedestal, max);
 }
 
 bool operator<(const TpcPrototypeUnpacker::PadPlaneData::SampleID& s1, const TpcPrototypeUnpacker::PadPlaneData::SampleID& s2)
@@ -1092,7 +1091,7 @@ void TpcPrototypeUnpacker::PadPlaneData::Clustering(int zero_suppression, bool v
   }  //   for (unsigned int pad_azimuth = 0; pad_azimuth < kMaxPadY; ++pad_azimuth)
 
   // connect 2-D adjacent samples within each pad_x
-  vector<SampleID> search_directions;
+  std::vector<SampleID> search_directions;
   search_directions.push_back(SampleID{0, 0, 1});
   //  search_directions.push_back(SampleID{0, 1, 0});
   search_directions.push_back(SampleID{1, 0, 0});
@@ -1124,28 +1123,28 @@ void TpcPrototypeUnpacker::PadPlaneData::Clustering(int zero_suppression, bool v
 
   // Loop over the components(vertices) compiling a list of the unique
   // connections (ie clusters).
-  set<int> comps;                // Number of unique components
+  std::set<int> comps;                // Number of unique components
   assert(m_groups.size() == 0);  // no overwrite
 
   for (unsigned int i = 0; i < component.size(); i++)
   {
     comps.insert(component[i]);
-    m_groups.insert(make_pair(component[i], vertex_list.left.find(vertex(i, G))->second));
+    m_groups.insert(std::make_pair(component[i], vertex_list.left.find(vertex(i, G))->second));
   }
 
   //debug prints
   if (verbosity){
     for (const int& comp : comps)
     {
-      cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering - find cluster " << comp << " containing ";
+      std::cout << "TpcPrototypeUnpacker::PadPlaneData::Clustering - find cluster " << comp << " containing ";
       const auto range = m_groups.equal_range(comp);
 
       for (auto iter = range.first; iter != range.second; ++iter)
       {
         const SampleID& id = iter->second;
-        cout << "adc[" << id.pad_azimuth << "][" << id.pad_radial << "][" << id.sample << "] = " << m_data[id.pad_azimuth][id.pad_radial][id.sample] << ", ";
+        std::cout << "adc[" << id.pad_azimuth << "][" << id.pad_radial << "][" << id.sample << "] = " << m_data[id.pad_azimuth][id.pad_radial][id.sample] << ", ";
       }
-      cout << endl;
+      std::cout << std::endl;
     }  //  for (const int& comp : comps)
   }
 }
@@ -1153,16 +1152,16 @@ void TpcPrototypeUnpacker::PadPlaneData::Clustering(int zero_suppression, bool v
 Fun4AllHistoManager*
 TpcPrototypeUnpacker::getHistoManager()
 {
-  static string histname("TpcPrototypeUnpacker_HISTOS");
+  static std::string histname("TpcPrototypeUnpacker_HISTOS");
 
   Fun4AllServer* se = Fun4AllServer::instance();
   Fun4AllHistoManager* hm = se->getHistoManager(histname);
 
   if (not hm)
   {
-    cout
+    std::cout
         << "TpcPrototypeUnpacker::get_HistoManager - Making Fun4AllHistoManager "
-        << histname << endl;
+        << histname << std::endl;
     hm = new Fun4AllHistoManager(histname);
     se->registerHistoManager(hm);
   }
@@ -1174,21 +1173,21 @@ TpcPrototypeUnpacker::getHistoManager()
 
 void TpcPrototypeUnpacker::registerPadPlane(PHG4TpcPadPlane* inpadplane)
 {
-  cout << "Registering padplane " << endl;
+  std::cout << "Registering padplane " << std::endl;
   padplane = inpadplane;
   padplane->Detector("TPC");
   padplane->UpdateInternalParameters();
   if (Verbosity())
-    cout << __PRETTY_FUNCTION__ << " padplane registered and parameters updated" << endl;
+    std::cout << __PRETTY_FUNCTION__ << " padplane registered and parameters updated" << std::endl;
 
   return;
 }
 
 int TpcPrototypeUnpacker::InitField(PHCompositeNode* topNode)
 {
-  if (Verbosity() >= 1) cout << "TpcPrototypeUnpacker::InitField - create magnetic field setup" << endl;
+  if (Verbosity() >= 1) std::cout << "TpcPrototypeUnpacker::InitField - create magnetic field setup" << std::endl;
 
-  unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
+  std::unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
 
   default_field_cfg.reset(new PHFieldConfigv2(0, 0, 0));
 
